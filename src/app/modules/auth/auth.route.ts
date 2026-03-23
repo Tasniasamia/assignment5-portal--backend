@@ -4,10 +4,11 @@ import { checkAuth } from "../../middleware/checkAuth";
 import { Role } from "../../../generated/prisma/enums";
 import { authValidationSchema } from "./auth.validation";
 import { validationRequest } from "../../middleware/validationRequest";
+import { multerUpload } from "../../../config/multer.config";
 
 const router = Router();
 
-router.post("/register", AuthController.registerPatient);
+router.post("/register", AuthController.register);
 router.post("/login", AuthController.loginUser);
 router.get(
   "/me",
@@ -28,5 +29,6 @@ router.post("/sendOtp",AuthController.requestPasswordReset);
 router.post("/resetPassword",AuthController.resetPasswordReset);
 router.get("/login/google",AuthController.googleLogin);
 router.get("/google/success",AuthController.googleSuccess);
+router.patch("/update-profile",checkAuth(Role.ADMIN, Role.MEMBER),multerUpload.single("file"),AuthController.updateProfile)
 
 export const AuthRoutes = router;

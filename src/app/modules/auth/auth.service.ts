@@ -8,7 +8,7 @@ import type { JwtPayload } from "jsonwebtoken";
 import { jwtUtils } from "../../utils/jwt";
 import { envVars } from "../../../config/env";
 import type { IJwtUserPayload } from "../../interfaces/token.interface";
-import type { TChangePasswordPayload } from "./auth.interface";
+import type { IUpdateAdminPayload, IUpdateMember, IUpdateProfilePayload, TChangePasswordPayload } from "./auth.interface";
 import type { Request, Response } from "express";
 import { cookieUtils } from "../../utils/cookie";
 
@@ -22,7 +22,7 @@ interface ILoginUserPayload {
   password: string;
 }
 
-const registerPatient = async (payload: IRegisterMemberPayload) => {
+const register = async (payload: IRegisterMemberPayload) => {
   const { name, email, password } = payload;
   const data = await auth.api.signUpEmail({
     body: {
@@ -106,6 +106,59 @@ const getProfile = async (user: JwtPayload) => {
   }
   return findUser;
 };
+
+
+const updateProfile = async (payload: IUpdateProfilePayload, user: JwtPayload) => {
+  const existingUser = await prisma.user.findUnique({
+    where: { id: user?.id, isDeleted: false },
+  });
+
+  if (!existingUser) {
+    throw new AppError(status.NOT_FOUND, "User not found");
+  }
+
+  const result = await prisma.$transaction(async (tx) => {
+    const updatedUser = await tx.user.update({
+      where: { id: user?.id },
+      data: {
+        ...(payload.name && { name: payload.name }),
+        ...(payload.image && { image: payload.image }),
+      },
+    });
+
+    const rolePayload = {
+      ...(payload.name && { name: payload.name }),
+      ...(payload.image && { profilePhoto: payload.profilePhoto }),
+      ...(payload.contactNumber && { contactNumber: payload.contactNumber }),
+    };
+
+    if (user?.role === Role.MEMBER) {
+      await tx.member.update({
+        where: { userId: user?.id },
+        data: rolePayload as IUpdateMember,
+      });
+    }
+
+    if (user?.role === Role.ADMIN) {
+      await tx.admin.update({
+        where: { userId: user?.id },
+        data: rolePayload as IUpdateAdminPayload,
+      });
+    }
+
+    return updatedUser;
+  });
+
+  return result;
+};
+
+
+
+
+
+
+
+
 
 const getNewToken = async (refreshToken: string, sessionToken: string) => {
   const verifyRefreshToken = jwtUtils.verifyToken(
@@ -335,12 +388,12 @@ const resetPassword = async (payload: {
     throw new AppError(status.BAD_REQUEST, "User Email not verified");
   }
 
-  // if (user.status !== UserStatus.ACTIVE || user.isDeleted) {
-  //   throw new AppError(
-  //     status.NOT_FOUND,
-  //     "User is not eligible for password reset"
-  //   );
-  // }
+  if (user.status !== UserStatus.ACTIVE || user.isDeleted) {
+    throw new AppError(
+      status.NOT_FOUND,
+      "User is not eligible for password reset"
+    );
+  }
 
   const data = await auth.api.resetPasswordEmailOTP({
     body: {
@@ -389,7 +442,7 @@ const googleSuccess = async (user: JwtPayload) => {
 };
 
 export const AuthService = {
-  registerPatient,
+  register,
   loginUser,
   getProfile,
   getNewToken,
@@ -399,4 +452,5 @@ export const AuthService = {
   requestPasswordReset,
   resetPassword,
   googleSuccess,
+  updateProfile
 };

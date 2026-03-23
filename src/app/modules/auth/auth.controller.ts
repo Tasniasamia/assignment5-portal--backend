@@ -14,11 +14,11 @@ import path from "path";
 import { auth } from "../../lib/auth";
 
 
-const registerPatient = catchAsyncHandler(
+const register = catchAsyncHandler(
   async (req: Request, res: Response) => {
     const payload = req.body;
 
-    const result = await AuthService.registerPatient(payload);
+    const result = await AuthService.register(payload);
 
     sendResponse(res, {
       httpStatusCode: status.CREATED,
@@ -293,6 +293,19 @@ const resendOtp = async (req: Request, res: Response) => {
 };
 
 
+ const updateProfile= (catchAsyncHandler(async(req:Request,res:Response,next:NextFunction)=>{
+  const data=await req.body;
+  const payload={...req.body,image:req?.file?.path}
+  const response=await AuthService.updateProfile(payload,req?.user);
+  if(response){
+  return await sendResponse(res,{
+    success:true,
+    message:'Profile Updated Successfully',
+    data:response,
+    httpStatusCode:201
+    });
+  }
+ }))
 
 
 
@@ -301,7 +314,7 @@ const resendOtp = async (req: Request, res: Response) => {
 
 
 export const AuthController = {
-  registerPatient,
+  register,
   loginUser,
   getProfile,
   getNewToken,
@@ -312,5 +325,6 @@ export const AuthController = {
   resetPasswordReset,
   googleLogin,
   googleSuccess,
-  resendOtp
+  resendOtp,
+  updateProfile
 };
