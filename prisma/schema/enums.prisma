@@ -1,0 +1,23 @@
+enum Role {
+
+    ADMIN
+    MEMBER
+ 
+}
+ enum UserStatus {
+    ACTIVE
+    BLOCKED
+    DELETED
+}
+
+enum Gender {
+    FEMALE
+    MALE
+    OTHER
+}
+
+
+enum PaymentStatus {
+  PAID
+  UNPAID
+}
