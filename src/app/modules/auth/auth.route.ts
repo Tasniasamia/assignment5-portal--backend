@@ -23,7 +23,6 @@ router.post(
 );
 router.get("/logOut",checkAuth(Role.ADMIN, Role.MEMBER), AuthController.logOut);
 router.post("/resend-otp", AuthController.resendOtp);
-
 router.post("/verify-email",AuthController.verifyEmail);
 router.post("/sendOtp",AuthController.requestPasswordReset);
 router.post("/resetPassword",AuthController.resetPasswordReset);
