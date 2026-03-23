@@ -1,5 +1,5 @@
 import type { NextFunction } from "express";
-// import { Role} from "../../../generated/prisma/client";
+import { Role, UserStatus} from "../../../generated/prisma/client";
 import { auth } from "../../lib/auth";
 import { prisma } from "../../lib/prisma";
 import type {
@@ -21,16 +21,16 @@ const createAdmin = async (payload: TCreateAdminPayload) => {
     throw new Error(`User already exist as a ${isUserExist?.role}`);
   }
 
-  // const createUser = await auth.api.signUpEmail({
-  //   body: {
-  //     name: admin?.name as string,
-  //     email: admin?.email as string,
-  //     password: password,
-  //     needPasswordChanges: true,
-  //     role: Role.ADMIN,
-  //   },
-  // });
-  const createUser:any={}
+  const createUser = await auth.api.signUpEmail({
+    body: {
+      name: admin?.name as string,
+      email: admin?.email as string,
+      password: password,
+      needPasswordChanges: true,
+      role: Role.ADMIN,
+      status:UserStatus.ACTIVE
+    },
+  });
 
   if (!createUser?.user?.id) {
     throw new Error("Failed to create admin as user into user model");

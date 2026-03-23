@@ -8,13 +8,13 @@ import type { IJwtUserPayload } from "../interfaces/token.interface";
 const generateAccessToken = (payload: JwtPayload) => {
   console.log("payload",payload)
   return jwtUtils.createToken(payload, envVars.ACCESS_TOKEN_SECRET, {
-    expiresIn:  60 * 60 * 24 ,
+    expiresIn:  60 * 60 * 24 * 1000,
   } as SignOptions);
 };
 
 const generateRefreshToken = (payload: JwtPayload) => {
     return jwtUtils.createToken(payload, envVars.REFRESH_TOKEN_SECRET, {
-      expiresIn:  60 * 60 * 24 * 7
+      expiresIn:  60 * 60 * 24 * 1000 * 7
     });
   };
 
@@ -24,7 +24,7 @@ const setGenerateAccessTokenCookie=async(res:Response,accessToken:string)=>{
     sameSite: "none",
     path: "/",
     secure:true,
-    maxAge: 60 * 60 * 24
+    maxAge: 60 * 60 * 24 * 1000
   });
 }
 
@@ -34,7 +34,7 @@ return  await cookieUtils.setCookie(res, "refreshToken", refreshToken, {
     sameSite: "none",
     path: "/",
     secure:true,
-    maxAge: 60 * 60 * 24 * 7
+    maxAge: 60 * 60 * 24 * 7 * 1000
   });
 }
 
@@ -44,7 +44,7 @@ const setBetterAuthSessionCookie=async(res:Response,token:string)=>{
     sameSite: "none",
     path: "/",
     secure:true,
-    maxAge: 60 * 60 * 24
+    maxAge: 60 * 60 * 24 * 1000
   });
 }
 export const tokenUtils={

@@ -39,7 +39,7 @@ const registerPatient = async (payload: IRegisterMemberPayload) => {
     throw new Error("Failed to register member");
   }
   try {
-    const memberTx = await prisma.$transaction(async (tx:any) => {
+    const memberTx = await prisma.$transaction(async (tx) => {
       return await tx.member.create({
         data: { name: name, email: email, userId: data?.user?.id },
       });
@@ -93,26 +93,9 @@ const getProfile = async (user: JwtPayload) => {
   const findUser = await prisma.user.findFirst({
     where: { id: user?.id, isDeleted: false },
     include: {
-      patient: {
-        include: {
-          appointments: true,
-          medicalReports: true,
-          patientHealthData: true,
-          prescriptions: true,
-          reviews: true,
-        },
-      },
-      doctor: {
-        include: {
-          appointments: true,
-          doctorSchedules: true,
-          prescriptions: true,
-          specialities: true,
-          reviews: true,
-        },
-      },
+  
       admin: true,
-      superAdmin: true,
+      member: true,
     },
   });
   if (!findUser) {
@@ -322,12 +305,12 @@ const requestPasswordReset = async (email: string) => {
     throw new AppError(status.BAD_REQUEST, "User Email not verified");
   }
 
-  // if (user.status !== UserStatus.ACTIVE || user.isDeleted) {
-  //   throw new AppError(
-  //     status.NOT_FOUND,
-  //     "User is not eligible for password reset"
-  //   );
-  // }
+  if (user.status !== UserStatus.ACTIVE || user.isDeleted) {
+    throw new AppError(
+      status.NOT_FOUND,
+      "User is not eligible for password reset"
+    );
+  }
 
   const data = await auth.api.requestPasswordResetEmailOTP({
     body: { email },

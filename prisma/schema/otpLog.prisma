@@ -1,0 +1,5 @@
+model OtpLog {
+  id        String   @id @default(cuid())
+  email     String
+  createdAt DateTime @default(now())
+}

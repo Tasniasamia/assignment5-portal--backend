@@ -268,6 +268,38 @@ const handlerOauthError = catchAsyncHandler(
   }
 );
 
+
+const resendOtp = async (req: Request, res: Response) => {
+  try {
+    const { email, type } = req.body;
+    // type = "email-verification" or "forget-password"
+
+    if (!email || !type) {
+      return res.status(400).json({ message: "Email and type are required" });
+    }
+
+    // BetterAuth এর internal handler কে call করো
+    const response = await auth.api.sendVerificationOTP({
+      body: {
+        email,
+        type,
+      },
+    });
+
+    return res.status(200).json({ message: "OTP resent successfully" });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to resend OTP" });
+  }
+};
+
+
+
+
+
+
+
+
+
 export const AuthController = {
   registerPatient,
   loginUser,
@@ -280,4 +312,5 @@ export const AuthController = {
   resetPasswordReset,
   googleLogin,
   googleSuccess,
+  resendOtp
 };

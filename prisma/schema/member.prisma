@@ -5,7 +5,7 @@ model member {
     name      String
     email     String
     profilePhoto        String?
-    contactNumber       String
+    contactNumber       String?
     isDeleted         Boolean @default(false)
     deletedAt         DateTime?
     createdAt DateTime   @default(now())
