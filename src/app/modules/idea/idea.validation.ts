@@ -10,6 +10,7 @@ const createIdeaSchema = z.object({
   type: z.nativeEnum(IdeaType).optional(),
   price: z.number().positive().optional(),
   categoryId: z.string().uuid("Invalid category"),
+  isPublished: z.boolean().optional(),
 });
 
 const updateIdeaSchema = z.object({

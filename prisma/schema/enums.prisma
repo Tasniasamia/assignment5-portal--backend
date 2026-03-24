@@ -23,8 +23,9 @@ enum VoteType {
 }
 
 enum PaymentStatus {
- PAID
- UNPAID
+  SUCCESS
+  FAILED
+  PENDING
 }
 
 enum IdeaStatus {

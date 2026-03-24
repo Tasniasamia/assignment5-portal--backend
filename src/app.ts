@@ -7,13 +7,22 @@ import cookieParser from "cookie-parser";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "./app/lib/auth";
 import cron from "node-cron";
+import { paymentController } from "./app/modules/payment/payment.controller";
+// import { PaymentController } from "./app/modules/payment/payment.controller";
 
 const app: Application = express();
-
+app.post(
+  "/api/v1/payments/webhook",
+  express.raw({ type: "application/json" }),
+  paymentController.handleStripeWebhookEvent
+);
 // Global middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+
+
 
 // CORS
 const allowedOrigins = [

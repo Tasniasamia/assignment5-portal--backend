@@ -13,7 +13,7 @@
     "push": "prisma db push",
     "studio": "prisma studio",
     "reset": "prisma migrate reset",
-    "stripe:webhook": "stripe listen --forward-to localhost:6060/webhook"
+    "stripe:webhook": "stripe listen --forward-to localhost:6060/api/v1/payments/webhook"
   },
   "keywords": [],
   "author": "",

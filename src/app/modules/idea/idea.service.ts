@@ -29,7 +29,7 @@ const createIdea = async (payload: ICreateIdeaPayload, user: JwtPayload) => {
     throw new AppError(status.BAD_REQUEST, "Price is required for paid ideas");
   }
 
-
+console.log("payload",payload);
   const idea = await prisma.idea.create({
     data: {
       title: payload.title,
