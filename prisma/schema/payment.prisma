@@ -1,0 +1,17 @@
+
+model Payment {
+  id              String        @id @default(uuid())
+  amount          Float
+  status          PaymentStatus 
+  transactionId   String?       @unique
+  ideaId          String
+  idea            Idea          @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@unique([ideaId, userId]) // একজন user একটা idea একবারই কিনতে পারবে
+  @@index([userId], name: "payment_userId")
+  @@map("payment")
+}

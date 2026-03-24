@@ -1,0 +1,35 @@
+
+
+model Idea {
+  id               String      @id @default(uuid())
+  title            String
+  problemStatement String
+  proposedSolution String
+  description      String
+  images           String[]
+  status           IdeaStatus  @default(DRAFT)
+  type             IdeaType    @default(FREE)
+  price            Float?
+  rejectionFeedback String?
+  isPaid           Boolean     @default(false)
+  viewCount        Int         @default(0)
+  isDeleted        Boolean     @default(false)
+  deletedAt        DateTime?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  authorId         String
+  author           User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  categoryId       String
+  category         Category    @relation(fields: [categoryId], references: [id])
+
+  votes            Vote[]
+  comments         Comment[]
+  payments         Payment[]
+
+  @@index([status], name: "idea_status")
+  @@index([authorId], name: "idea_authorId")
+  @@index([categoryId], name: "idea_categoryId")
+  @@map("idea")
+}

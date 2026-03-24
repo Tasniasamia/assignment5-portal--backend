@@ -1,0 +1,15 @@
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?
+  isDeleted   Boolean   @default(false)
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // ✅ নতুন relation
+  ideas       Idea[]
+
+  @@index([name], name: "category_name")
+  @@map("category")
+}

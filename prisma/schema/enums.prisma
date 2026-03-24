@@ -17,7 +17,25 @@ enum Gender {
 }
 
 
+enum VoteType {
+  UPVOTE
+  DOWNVOTE
+}
+
 enum PaymentStatus {
+ PAID
+ UNPAID
+}
+
+enum IdeaStatus {
+  DRAFT
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum IdeaType {
+  FREE
   PAID
-  UNPAID
 }

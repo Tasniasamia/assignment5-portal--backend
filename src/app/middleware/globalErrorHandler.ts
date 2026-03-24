@@ -5,8 +5,8 @@ import z, { object } from "zod";
 import type { TErrorSources } from "../interfaces/error.interface";
 import { handleZodError } from "../errorHelplers/handleZodError";
 import { AppError } from "../errorHelplers/appError";
-// import { deleteFileFromCloudinary } from "../../config/cloude.config";
-// import { deleteUploadedFilesFromGlobalErrorHandler } from "../utils/deleteUploadedFilesFromGlobalErrorHandler";
+import { deleteFileFromCloudinary } from "../../config/cloude.config";
+import { deleteUploadedFilesFromGlobalErrorHandler } from "../utils/deleteUploadedFilesFromGlobalErrorHandler";
 import { Prisma } from "../../generated/prisma/client";
 import { handlePrismaClientKnownRequestError, handlePrismaClientUnknownError, handlePrismaClientValidationError, handlerPrismaClientInitializationError, handlerPrismaClientRustPanicError } from "../errorHelplers/handlePrismaError";
 
@@ -63,27 +63,27 @@ else  if (error instanceof z.ZodError) {
     httpStatusCode = simplifiedError?.statusCode as number;
     errorSources = [...simplifiedError.errorSources];
   }
-  // else if(error instanceof AppError){
-  //      if(req?.file || req?.files){
-  //       await deleteUploadedFilesFromGlobalErrorHandler(req)
+  else if(error instanceof AppError){
+       if(req?.file || req?.files){
+        await deleteUploadedFilesFromGlobalErrorHandler(req)
 
-  //      }
+       }
     
 
-  //   console.log("global error handler",req?.files);
+    console.log("global error handler",req?.files);
   
 
 
 
 
-  //   message = error?.message;
-  //   httpStatusCode = error?.statusCode;
-  //   stack=error?.stack as string
-  //   errorSources = [{
-  //       path:'/',
-  //       message:error?.message
-  //   }];
-  // }
+    message = error?.message;
+    httpStatusCode = error?.statusCode;
+    stack=error?.stack as string
+    errorSources = [{
+        path:'/',
+        message:error?.message
+    }];
+  }
   else if(error instanceof Error){
     message = error?.message;
     httpStatusCode=status.INTERNAL_SERVER_ERROR

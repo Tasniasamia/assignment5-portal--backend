@@ -1,6 +1,8 @@
 import { Router } from "express";
 import { AuthRoutes } from "../modules/auth/auth.route";
 import { userRoutes } from "../modules/user/user.route";
+import { categoryRoutes } from "../modules/idea/category/category.route";
+import { ideaRoutes } from "../modules/idea/idea.route";
 
 
 
@@ -15,6 +17,14 @@ const allRoutes=[
     {
         path:'/user',
         handler:userRoutes
+    },
+    {
+        path:'/idea/category',
+        handler:categoryRoutes
+    },
+    {
+        path:'/idea',
+        handler:ideaRoutes
     }
 
 ]

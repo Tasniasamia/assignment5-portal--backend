@@ -1,0 +1,19 @@
+model Comment {
+  id        String    @id @default(uuid())
+  content   String
+  ideaId    String
+  idea      Idea      @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parentId  String?   // Nested comment এর জন্য
+  parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies   Comment[] @relation("CommentReplies")
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([ideaId], name: "comment_ideaId")
+  @@index([parentId], name: "comment_parentId")
+  @@map("comment")
+}

@@ -1,0 +1,19 @@
+
+
+model Vote {
+  id        String   @id @default(uuid())
+  type      VoteType
+  ideaId    String
+  idea      Idea     @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([ideaId, userId]) // একজন user একটা idea তে একবারই vote দিতে পারবে
+  @@index([ideaId], name: "vote_ideaId")
+  @@map("vote")
+}
+
+
+
