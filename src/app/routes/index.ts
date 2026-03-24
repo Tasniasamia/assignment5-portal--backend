@@ -3,6 +3,7 @@ import { AuthRoutes } from "../modules/auth/auth.route";
 import { userRoutes } from "../modules/user/user.route";
 import { categoryRoutes } from "../modules/idea/category/category.route";
 import { ideaRoutes } from "../modules/idea/idea.route";
+import { globalRoutes } from "../modules/global/global.route";
 
 
 
@@ -25,6 +26,10 @@ const allRoutes=[
     {
         path:'/idea',
         handler:ideaRoutes
+    },
+    {
+        path:'/delete',
+        handler:globalRoutes
     }
 
 ]

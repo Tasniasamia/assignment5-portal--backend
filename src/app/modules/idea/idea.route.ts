@@ -11,7 +11,6 @@ const router = Router();
 
 // ✅ Public
 router.get("/", ideaController.getAllIdeas);
-router.get("/:id", ideaController.getIdeaById);
 
 // ✅ Member
 router.post(
@@ -46,14 +45,14 @@ router.patch(
 
 // ✅ Member Dashboard
 router.get(
-  "/my/ideas",
+  "/roleWise",
   checkAuth(Role.MEMBER, Role.ADMIN),
   ideaController.getMyIdeas
 );
 
 // ✅ Admin
 router.get(
-  "/admin/all",
+  "/admin",
   checkAuth(Role.ADMIN),
   ideaController.getAllIdeasAdmin
 );
@@ -70,5 +69,11 @@ router.patch(
   validationRequest(ideaValidationSchema.rejectIdeaSchema),
   ideaController.rejectIdea
 );
+router.patch(
+  "/:id/under-review",
+  checkAuth(Role.ADMIN),
+  ideaController.moveToUnderReview
+);
+router.get("/:id", ideaController.getIdeaById);
 
 export const ideaRoutes = router;

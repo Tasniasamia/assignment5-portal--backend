@@ -17,7 +17,7 @@ model Idea {
   deletedAt        DateTime?
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
-
+  isPublished      Boolean     @default(false)
   authorId         String
   author           User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
 

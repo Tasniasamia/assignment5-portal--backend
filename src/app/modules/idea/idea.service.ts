@@ -13,6 +13,8 @@ import type {
   IUpdateIdeaPayload,
 } from "./idea.interface";
 import { AppError } from "../../errorHelplers/appError";
+import { QueryBuilder } from "../../utils/queryBuilder";
+import type { IQueryParams } from "../../interfaces/query.interface";
 
 const createIdea = async (payload: ICreateIdeaPayload, user: JwtPayload) => {
   const category = await prisma.category.findUnique({
@@ -27,6 +29,7 @@ const createIdea = async (payload: ICreateIdeaPayload, user: JwtPayload) => {
     throw new AppError(status.BAD_REQUEST, "Price is required for paid ideas");
   }
 
+
   const idea = await prisma.idea.create({
     data: {
       title: payload.title,
@@ -37,7 +40,7 @@ const createIdea = async (payload: ICreateIdeaPayload, user: JwtPayload) => {
       type: payload.type || IdeaType.FREE,
       price: payload.price || null,
       isPaid: payload.type === IdeaType.PAID,
-      status: IdeaStatus.DRAFT,
+      status:payload?.isPublished? IdeaStatus.PENDING : IdeaStatus.DRAFT,
       authorId: user?.id,
       categoryId: payload.categoryId,
     },
@@ -82,72 +85,57 @@ const submitIdea = async (ideaId: string, user: JwtPayload) => {
   return updated;
 };
 
-const getAllIdeas = async (filters: IIdeaFilterPayload) => {
-  const {
-    search,
-    categoryId,
-    type,
-    page = 1,
-    limit = 10,
-    sortBy = "recent",
-  } = filters;
+const getAllIdeas = async (query: IQueryParams) => {
+  const stringSearchFields = [
+    "title",
+    "description",
+    "problemStatement",
+    "author.name",
+    "category.name",
+  ];
 
-  const skip = (Number(page) - 1) * Number(limit);
+  const builder = new QueryBuilder(
+    query,
+    "idea",
+    [],
+    stringSearchFields,
+    [],
+    ["author", "category"]
+  );
 
-  const where = {
-    status: IdeaStatus.APPROVED,
-    isDeleted: false,
-    ...(categoryId && { categoryId }),
-    ...(type && { type }),
-    ...(search && {
-      OR: [
-        { title: { contains: search, mode: "insensitive" as const } },
-        { description: { contains: search, mode: "insensitive" as const } },
-        { problemStatement: { contains: search, mode: "insensitive" as const } },
-      ],
-    }),
-  };
+  // ✅ Default filters
+  builder.filterCondition.push(
+    { status: IdeaStatus.APPROVED },
+    { isDeleted: false }
+  );
 
-  const orderBy =
-    sortBy === "top_voted"
-      ? { votes: { _count: "desc" as const } }
-      : { createdAt: "desc" as const };
+  builder.callAll();
 
-  const [ideas, total] = await Promise.all([
-    prisma.idea.findMany({
-      where,
-      skip,
-      take: Number(limit),
-      orderBy,
-      include: {
-        category: true,
-        author: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-          },
-        },
-        _count: {
-          select: {
-            votes: true,
-            comments: true,
-          },
-        },
+  // ✅ top_voted sort handle
+  if (query.sortBy === "top_voted") {
+    builder.orderBy = { votes: { _count: "desc" } };
+  }
+
+  // ✅ include set করো — fetch() এটাই use করবে
+  builder.include = {
+    category: true,
+    author: {
+      select: {
+        id: true,
+        name: true,
+        image: true,
       },
-    }),
-    prisma.idea.count({ where }),
-  ]);
-
-  return {
-    data: ideas,
-    meta: {
-      total,
-      page: Number(page),
-      limit: Number(limit),
-      totalPages: Math.ceil(total / Number(limit)),
+    },
+    _count: {
+      select: {
+        votes: true,
+        comments: true,
+      },
     },
   };
+
+  // ✅ fetch() — pagination, count, findMany সব handle করে
+  return await builder.fetch();
 };
 
 const getIdeaById = async (ideaId: string) => {
@@ -214,6 +202,8 @@ const updateIdea = async (
   const updated = await prisma.idea.update({
     where: { id: ideaId },
     data: {
+            ...(payload.images !== undefined && { images: payload.images }), 
+    ...(payload.title && { title: payload.title }),
       ...(payload.title && { title: payload.title }),
       ...(payload.problemStatement && {
         problemStatement: payload.problemStatement,
@@ -287,7 +277,7 @@ const rejectIdea = async (ideaId: string, payload: IRejectIdeaPayload) => {
     throw new AppError(status.NOT_FOUND, "Idea not found");
   }
 
-  if (idea.status !== IdeaStatus.UNDER_REVIEW) {
+  if ((idea.status !== IdeaStatus.UNDER_REVIEW)) {
     throw new AppError(status.BAD_REQUEST, "Idea is not under review");
   }
 
@@ -302,80 +292,136 @@ const rejectIdea = async (ideaId: string, payload: IRejectIdeaPayload) => {
   return updated;
 };
 
-const getMyIdeas = async (user: JwtPayload, filters: IIdeaFilterPayload) => {
-  const { page = 1, limit = 10 } = filters;
-  const skip = (Number(page) - 1) * Number(limit);
 
-  const [ideas, total] = await Promise.all([
-    prisma.idea.findMany({
-      where: { authorId: user?.id, isDeleted: false },
-      skip,
-      take: Number(limit),
-      orderBy: { createdAt: "desc" },
-      include: {
-        category: true,
-        _count: {
-          select: { votes: true, comments: true },
-        },
-      },
-    }),
-    prisma.idea.count({
-      where: { authorId: user?.id, isDeleted: false },
-    }),
-  ]);
 
-  return {
-    data: ideas,
-    meta: {
-      total,
-      page: Number(page),
-      limit: Number(limit),
-      totalPages: Math.ceil(total / Number(limit)),
-    },
-  };
+
+const moveToUnderReview = async (ideaId: string) => {
+  const idea = await prisma.idea.findUnique({
+    where: { id: ideaId, isDeleted: false },
+  });
+
+
+
+  if (!idea) {
+    throw new AppError(status.NOT_FOUND, "Idea not found");
+  }
+
+
+
+  if (idea.status !== IdeaStatus.PENDING) {
+    throw new AppError(status.BAD_REQUEST, "Only pending ideas can be moved to under review");
+  }
+
+  const updated = await prisma.idea.update({
+    where: { id: ideaId },
+    data: { status: IdeaStatus.UNDER_REVIEW },
+  });
+
+  return updated;
 };
 
-const getAllIdeasAdmin = async (filters: IIdeaFilterPayload) => {
-  const { status: ideaStatus, page = 1, limit = 10 } = filters;
-  const skip = (Number(page) - 1) * Number(limit);
 
-  const where = {
-    isDeleted: false,
-    ...(ideaStatus && { status: ideaStatus }),
-  };
 
-  const [ideas, total] = await Promise.all([
-    prisma.idea.findMany({
-      where,
-      skip,
-      take: Number(limit),
-      orderBy: { createdAt: "desc" },
-      include: {
-        category: true,
-        author: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        _count: {
-          select: { votes: true, comments: true },
-        },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const getMyIdeas = async (user: JwtPayload, query: IQueryParams) => {
+  const stringSearchFields = ["title", "description", "problemStatement"];
+
+  const builder = new QueryBuilder(
+    query,
+    "idea",
+    [],
+    stringSearchFields,
+    [],
+    ["author", "category"]
+  );
+
+  // ✅ authorId আর isDeleted must
+  builder.filterCondition.push(
+    { authorId: user?.id },
+    { isDeleted: false }
+  );
+
+  builder.callAll();
+
+  // ✅ include set করো
+  builder.include = {
+    category: true,
+    _count: {
+      select: {
+        votes: true,
+        comments: true,
       },
-    }),
-    prisma.idea.count({ where }),
-  ]);
-
-  return {
-    data: ideas,
-    meta: {
-      total,
-      page: Number(page),
-      limit: Number(limit),
-      totalPages: Math.ceil(total / Number(limit)),
     },
   };
+
+  // ✅ fetch() directly
+  return await builder.fetch();
+};
+
+const getAllIdeasAdmin = async (query: IQueryParams) => {
+ const stringSearchFields = [
+    "title",
+    "description",
+    "problemStatement",
+    "author.name",
+    "category.name",
+  ];
+
+  const builder = new QueryBuilder(
+    query,
+    "idea",
+    [],
+    stringSearchFields,
+    [],
+    ["author", "category"]
+  );
+
+  // // ✅ Default filters
+  // builder.filterCondition.push(
+  //   { status: IdeaStatus.APPROVED },
+  //   { isDeleted: false }
+  // );
+
+  builder.callAll();
+
+  // ✅ top_voted sort handle
+  if (query.sortBy === "top_voted") {
+    builder.orderBy = { votes: { _count: "desc" } };
+  }
+
+  // ✅ include set করো — fetch() এটাই use করবে
+  builder.include = {
+    category: true,
+    author: true,
+    _count: {
+      select: {
+        votes: true,
+        comments: true,
+      },
+    },
+  };
+
+  // ✅ fetch() — pagination, count, findMany সব handle করে
+  return await builder.fetch();
 };
 
 export const ideaService = {
@@ -389,4 +435,5 @@ export const ideaService = {
   rejectIdea,
   getMyIdeas,
   getAllIdeasAdmin,
+  moveToUnderReview
 };

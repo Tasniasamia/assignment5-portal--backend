@@ -9,6 +9,7 @@ export type ICreateIdeaPayload = {
   type?: IdeaType;
   price?: number;
   categoryId: string;
+  isPublished:boolean
 };
 
 export type IUpdateIdeaPayload = {

@@ -10,19 +10,21 @@ export const ideaUploadMiddleware = (
     req.body = JSON.parse(req.body.data);
   }
 
-  const files = req?.files as {
-    [fieldName: string]: Express.Multer.File[];
-  };
+const files = req?.files as Record<string, Express.Multer.File[]>;
 
-  if (Array.isArray(files?.images) && files.images.length > 0) {
-    const newImages = files.images.map((file) => file.path);
+const existingImages: string[] = req.body.existingImages || [];
+const hasNewImages = Array.isArray(files?.images) && files.images.length > 0;
 
-    // পুরনো images থাকলে merge করো
-    req.body.images = [
-      ...(req.body.existingImages || []),
-      ...newImages,
-    ];
+if (hasNewImages) {
+const newImages = (files.images ?? []).map((file: Express.Multer.File) => file.path);
+  req.body.images = [...existingImages, ...newImages];
+  } else {
+    // ✅ নতুন image না দিলে → শুধু existing রাখো
+    req.body.images = existingImages.length > 0 ? existingImages : undefined;
   }
+
+  // ✅ existingImages body থেকে remove করো — service এ লাগবে না
+  delete req.body.existingImages;
 
   next();
 };
