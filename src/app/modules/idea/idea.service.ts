@@ -3,6 +3,7 @@ import { status } from "http-status";
 import {
   IdeaStatus,
   IdeaType,
+  PaymentStatus,
   Role,
 } from "../../../generated/prisma/enums";
 import type { JwtPayload } from "jsonwebtoken";
@@ -138,7 +139,7 @@ const getAllIdeas = async (query: IQueryParams) => {
   return await builder.fetch();
 };
 
-const getIdeaById = async (ideaId: string) => {
+const getIdeaById = async (ideaId: string, userId?: string, role?: string) => {
   const idea = await prisma.idea.findUnique({
     where: { id: ideaId, isDeleted: false },
     include: {
@@ -163,7 +164,32 @@ const getIdeaById = async (ideaId: string) => {
     throw new AppError(status.NOT_FOUND, "Idea not found");
   }
 
-  // view count বাড়াও
+  // ✅ Admin সব দেখতে পারবে
+  if (role === Role.ADMIN) {
+    return idea;
+  }
+
+  // ✅ Paid idea হলে payment check
+  if (idea.isPaid) {
+    if (!userId) {
+      throw new AppError(
+        status.UNAUTHORIZED,
+        "Please login to view this idea"
+      );
+    }
+
+    const payment = await prisma.payment.findUnique({
+      where: { ideaId_userId: { ideaId, userId } },
+    });
+
+    if (!payment || payment.status !== PaymentStatus.SUCCESS) {
+      throw new AppError(
+        status.FORBIDDEN,
+        "Please purchase this idea to view it"
+      );
+    }
+  }
+
   await prisma.idea.update({
     where: { id: ideaId },
     data: { viewCount: { increment: 1 } },
@@ -171,7 +197,6 @@ const getIdeaById = async (ideaId: string) => {
 
   return idea;
 };
-
 const updateIdea = async (
   ideaId: string,
   payload: IUpdateIdeaPayload,

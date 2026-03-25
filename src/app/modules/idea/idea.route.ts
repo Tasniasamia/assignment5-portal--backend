@@ -74,6 +74,6 @@ router.patch(
   checkAuth(Role.ADMIN),
   ideaController.moveToUnderReview
 );
-router.get("/:id", ideaController.getIdeaById);
+router.get("/:id",checkAuth(Role.MEMBER, Role.ADMIN), ideaController.getIdeaById);
 
 export const ideaRoutes = router;

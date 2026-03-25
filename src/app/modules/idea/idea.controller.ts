@@ -37,7 +37,10 @@ const getAllIdeas = catchAsyncHandler(async (req: Request, res: Response) => {
 });
 
 const getIdeaById = catchAsyncHandler(async (req: Request, res: Response) => {
-  const result = await ideaService.getIdeaById(req.params.id as string);
+  const userId = req.user?.id;
+  const role = req.user?.role;  // ✅ role নাও
+
+  const result = await ideaService.getIdeaById(req.params.id as string, userId, role);
   return sendResponse(res, {
     httpStatusCode: status.OK,
     success: true,

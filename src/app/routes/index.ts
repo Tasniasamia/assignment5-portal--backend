@@ -5,6 +5,7 @@ import { categoryRoutes } from "../modules/idea/category/category.route";
 import { ideaRoutes } from "../modules/idea/idea.route";
 import { globalRoutes } from "../modules/global/global.route";
 import { paymentRoutes } from "../modules/payment/payment.route";
+import { commentRoutes } from "../modules/comment/comment.route";
 
 
 
@@ -35,6 +36,10 @@ const allRoutes=[
     {
         path:'/payments',
         handler:paymentRoutes
+    },
+    {
+        path:'/comments',
+        handler:commentRoutes
     }
 
 ]
