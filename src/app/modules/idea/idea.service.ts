@@ -86,117 +86,117 @@ const submitIdea = async (ideaId: string, user: JwtPayload) => {
   return updated;
 };
 
-const getAllIdeas = async (query: IQueryParams) => {
-  const stringSearchFields = [
-    "title",
-    "description",
-    "problemStatement",
-    "author.name",
-    "category.name",
-  ];
+// const getAllIdeas = async (query: IQueryParams) => {
+//   const stringSearchFields = [
+//     "title",
+//     "description",
+//     "problemStatement",
+//     "author.name",
+//     "category.name",
+//   ];
 
-  const builder = new QueryBuilder(
-    query,
-    "idea",
-    [],
-    stringSearchFields,
-    [],
-    ["author", "category"]
-  );
+//   const builder = new QueryBuilder(
+//     query,
+//     "idea",
+//     [],
+//     stringSearchFields,
+//     [],
+//     ["author", "category"]
+//   );
 
-  // ✅ Default filters
-  builder.filterCondition.push(
-    { status: IdeaStatus.APPROVED },
-    { isDeleted: false }
-  );
+//   // ✅ Default filters
+//   builder.filterCondition.push(
+//     { status: IdeaStatus.APPROVED },
+//     { isDeleted: false }
+//   );
 
-  builder.callAll();
+//   builder.callAll();
 
-  // ✅ top_voted sort handle
-  if (query.sortBy === "top_voted") {
-    builder.orderBy = { votes: { _count: "desc" } };
-  }
+//   // ✅ top_voted sort handle
+//   if (query.sortBy === "top_voted") {
+//     builder.orderBy = { votes: { _count: "desc" } };
+//   }
 
-  // ✅ include set করো — fetch() এটাই use করবে
-  builder.include = {
-    category: true,
-    author: {
-      select: {
-        id: true,
-        name: true,
-        image: true,
-      },
-    },
-    _count: {
-      select: {
-        votes: true,
-        comments: true,
-      },
-    },
-  };
+//   // ✅ include set করো — fetch() এটাই use করবে
+//   builder.include = {
+//     category: true,
+//     author: {
+//       select: {
+//         id: true,
+//         name: true,
+//         image: true,
+//       },
+//     },
+//     _count: {
+//       select: {
+//         votes: true,
+//         comments: true,
+//       },
+//     },
+//   };
 
-  // ✅ fetch() — pagination, count, findMany সব handle করে
-  return await builder.fetch();
-};
+//   // ✅ fetch() — pagination, count, findMany সব handle করে
+//   return await builder.fetch();
+// };
 
-const getIdeaById = async (ideaId: string, userId?: string, role?: string) => {
-  const idea = await prisma.idea.findUnique({
-    where: { id: ideaId, isDeleted: false },
-    include: {
-      category: true,
-      author: {
-        select: {
-          id: true,
-          name: true,
-          image: true,
-        },
-      },
-      _count: {
-        select: {
-          votes: true,
-          comments: true,
-        },
-      },
-    },
-  });
+// const getIdeaById = async (ideaId: string, userId?: string, role?: string) => {
+//   const idea = await prisma.idea.findUnique({
+//     where: { id: ideaId, isDeleted: false },
+//     include: {
+//       category: true,
+//       author: {
+//         select: {
+//           id: true,
+//           name: true,
+//           image: true,
+//         },
+//       },
+//       _count: {
+//         select: {
+//           votes: true,
+//           comments: true,
+//         },
+//       },
+//     },
+//   });
 
-  if (!idea) {
-    throw new AppError(status.NOT_FOUND, "Idea not found");
-  }
+//   if (!idea) {
+//     throw new AppError(status.NOT_FOUND, "Idea not found");
+//   }
 
-  // ✅ Admin সব দেখতে পারবে
-  if (role === Role.ADMIN) {
-    return idea;
-  }
+//   // ✅ Admin সব দেখতে পারবে
+//   if (role === Role.ADMIN) {
+//     return idea;
+//   }
 
-  // ✅ Paid idea হলে payment check
-  if (idea.isPaid) {
-    if (!userId) {
-      throw new AppError(
-        status.UNAUTHORIZED,
-        "Please login to view this idea"
-      );
-    }
+//   // ✅ Paid idea হলে payment check
+//   if (idea.isPaid) {
+//     if (!userId) {
+//       throw new AppError(
+//         status.UNAUTHORIZED,
+//         "Please login to view this idea"
+//       );
+//     }
 
-    const payment = await prisma.payment.findUnique({
-      where: { ideaId_userId: { ideaId, userId } },
-    });
+//     const payment = await prisma.payment.findUnique({
+//       where: { ideaId_userId: { ideaId, userId } },
+//     });
 
-    if (!payment || payment.status !== PaymentStatus.SUCCESS) {
-      throw new AppError(
-        status.FORBIDDEN,
-        "Please purchase this idea to view it"
-      );
-    }
-  }
+//     if (!payment || payment.status !== PaymentStatus.SUCCESS) {
+//       throw new AppError(
+//         status.FORBIDDEN,
+//         "Please purchase this idea to view it"
+//       );
+//     }
+//   }
 
-  await prisma.idea.update({
-    where: { id: ideaId },
-    data: { viewCount: { increment: 1 } },
-  });
+//   await prisma.idea.update({
+//     where: { id: ideaId },
+//     data: { viewCount: { increment: 1 } },
+//   });
 
-  return idea;
-};
+//   return idea;
+// };
 const updateIdea = async (
   ideaId: string,
   payload: IUpdateIdeaPayload,
@@ -367,6 +367,102 @@ const moveToUnderReview = async (ideaId: string) => {
 
 
 
+// const getMyIdeas = async (user: JwtPayload, query: IQueryParams) => {
+//   const stringSearchFields = ["title", "description", "problemStatement"];
+
+//   const builder = new QueryBuilder(
+//     query,
+//     "idea",
+//     [],
+//     stringSearchFields,
+//     [],
+//     ["author", "category"]
+//   );
+
+//   // ✅ authorId আর isDeleted must
+//   builder.filterCondition.push(
+//     { authorId: user?.id },
+//     { isDeleted: false }
+//   );
+
+//   builder.callAll();
+
+//   // ✅ include set করো
+//   builder.include = {
+//     category: true,
+//     _count: {
+//       select: {
+//         votes: true,
+//         comments: true,
+//       },
+//     },
+//   };
+
+//   // ✅ fetch() directly
+//   return await builder.fetch();
+// };
+
+
+// ✅ getAllIdeas
+const getAllIdeas = async (query: IQueryParams, userId?: string) => {
+  const stringSearchFields = [
+    "title",
+    "description",
+    "problemStatement",
+    "author.name",
+    "category.name",
+  ];
+
+  const builder = new QueryBuilder(
+    query,
+    "idea",
+    [],
+    stringSearchFields,
+    [],
+    ["author", "category"]
+  );
+
+  builder.filterCondition.push(
+    { status: IdeaStatus.APPROVED },
+    { isDeleted: false }
+  );
+
+  builder.callAll();
+
+  if (query.sortBy === "top_voted") {
+    builder.orderBy = { votes: { _count: "desc" } };
+  }
+
+  builder.include = {
+    category: true,
+    author: {
+      select: { id: true, name: true, image: true },
+    },
+    _count: {
+      select: { votes: true, comments: true },
+    },
+    // ✅ userId থাকলে user এর vote আনো
+    ...(userId && {
+      votes: {
+        where: { userId },
+        select: { type: true },
+      },
+    }),
+  };
+
+  const result = await builder.fetch();
+
+  // ✅ userVote বের করো
+  const data = result.data.map((idea: any) => ({
+    ...idea,
+    userVote: idea.votes?.[0]?.type || null,
+    votes: undefined,
+  }));
+
+  return { ...result, data };
+};
+
+// ✅ getMyIdeas
 const getMyIdeas = async (user: JwtPayload, query: IQueryParams) => {
   const stringSearchFields = ["title", "description", "problemStatement"];
 
@@ -379,7 +475,6 @@ const getMyIdeas = async (user: JwtPayload, query: IQueryParams) => {
     ["author", "category"]
   );
 
-  // ✅ authorId আর isDeleted must
   builder.filterCondition.push(
     { authorId: user?.id },
     { isDeleted: false }
@@ -387,20 +482,99 @@ const getMyIdeas = async (user: JwtPayload, query: IQueryParams) => {
 
   builder.callAll();
 
-  // ✅ include set করো
   builder.include = {
     category: true,
     _count: {
-      select: {
-        votes: true,
-        comments: true,
-      },
+      select: { votes: true, comments: true },
+    },
+    // ✅ নিজের vote
+    votes: {
+      where: { userId: user?.id },
+      select: { type: true },
     },
   };
 
-  // ✅ fetch() directly
-  return await builder.fetch();
+  const result = await builder.fetch();
+
+  const data = result.data.map((idea: any) => ({
+    ...idea,
+    userVote: idea.votes?.[0]?.type || null,
+    votes: undefined,
+  }));
+
+  return { ...result, data };
 };
+
+// ✅ getIdeaById
+const getIdeaById = async (
+  ideaId: string,
+  userId?: string,
+  role?: string
+) => {
+  const idea = await prisma.idea.findUnique({
+    where: { id: ideaId, isDeleted: false },
+    include: {
+      category: true,
+      author: {
+        select: { id: true, name: true, image: true },
+      },
+      _count: {
+        select: { votes: true, comments: true },
+      },
+      // ✅ userId থাকলে user এর vote আনো
+      ...(userId && {
+        votes: {
+          where: { userId },
+          select: { type: true },
+        },
+      }),
+    },
+  });
+
+  if (!idea) {
+    throw new AppError(status.NOT_FOUND, "Idea not found");
+  }
+
+  // Admin সব দেখতে পারবে
+  if (role === Role.ADMIN) {
+    return {
+      ...idea,
+      userVote: (idea as any).votes?.[0]?.type || null,
+      votes: undefined,
+    };
+  }
+
+  // Paid idea check
+  if (idea.isPaid) {
+    if (!userId) {
+      throw new AppError(status.UNAUTHORIZED, "Please login to view this idea");
+    }
+
+    const payment = await prisma.payment.findUnique({
+      where: { ideaId_userId: { ideaId, userId } },
+    });
+
+    if (!payment || payment.status !== PaymentStatus.SUCCESS) {
+      throw new AppError(status.FORBIDDEN, "Please purchase this idea to view it");
+    }
+  }
+
+  // view count বাড়াও
+  await prisma.idea.update({
+    where: { id: ideaId },
+    data: { viewCount: { increment: 1 } },
+  });
+
+  return {
+    ...idea,
+    userVote: (idea as any).votes?.[0]?.type || null,
+    votes: undefined,
+  };
+};
+
+
+
+
 
 const getAllIdeasAdmin = async (query: IQueryParams) => {
  const stringSearchFields = [

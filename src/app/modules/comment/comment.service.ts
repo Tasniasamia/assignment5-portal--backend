@@ -65,7 +65,6 @@ const getCommentsByIdea = async (ideaId: string, query: IQueryParams) => {
     ["author"]
   );
 
-  // শুধু top-level comments (parentId = null)
   builder.filterCondition.push(
     { ideaId },
     { isDeleted: false },
