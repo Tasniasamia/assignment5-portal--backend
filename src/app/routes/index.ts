@@ -7,6 +7,7 @@ import { globalRoutes } from "../modules/global/global.route";
 import { paymentRoutes } from "../modules/payment/payment.route";
 import { commentRoutes } from "../modules/comment/comment.route";
 import { voteRoutes } from "../modules/vote/vote.route";
+import { dashboardRoutes } from "../modules/dashboard/dashboard.route";
 
 
 
@@ -45,6 +46,10 @@ const allRoutes=[
     {
         path:'/votes',
         handler:voteRoutes
+    },
+    {
+        path:'/dashboard',
+        handler:dashboardRoutes
     }
 
 ]
