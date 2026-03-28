@@ -275,7 +275,7 @@ const resendOtp = async (req: Request, res: Response) => {
     // type = "email-verification" or "forget-password"
 
     if (!email || !type) {
-      return res.status(400).json({ message: "Email and type are required" });
+      return res.status(400).json({success:false, message: "Email and type are required" });
     }
 
     // BetterAuth এর internal handler কে call করো
@@ -285,10 +285,13 @@ const resendOtp = async (req: Request, res: Response) => {
         type,
       },
     });
+    if(response){
+    return res.status(200).json({ success:true,data:[],message: "OTP resent successfully" });
 
-    return res.status(200).json({ message: "OTP resent successfully" });
-  } catch (error) {
-    return res.status(500).json({ message: "Failed to resend OTP" });
+    }
+
+  } catch (error:any) {
+    return res.status(500).json({ message: error?.message,success:false});
   }
 };
 
