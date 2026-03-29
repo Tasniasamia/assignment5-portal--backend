@@ -94,7 +94,7 @@ const getProfile = async (user: JwtPayload) => {
     where: { id: user?.id, isDeleted: false },
     include: {
   
-      admin: true,
+      admin:true,
       member: true,
     },
   });
@@ -109,40 +109,62 @@ const getProfile = async (user: JwtPayload) => {
 
 
 const updateProfile = async (payload: IUpdateProfilePayload, user: JwtPayload) => {
+  // ১. User আছে কিনা check করো
+  // console.log("payload here",payload);
   const existingUser = await prisma.user.findUnique({
-    where: { id: user?.id, isDeleted: false },
+    where: { id: user?.id, isDeleted: false },include:{admin:true,member:true}
   });
 
   if (!existingUser) {
     throw new AppError(status.NOT_FOUND, "User not found");
   }
+  console.log("authSerivce payload",payload);
 
   const result = await prisma.$transaction(async (tx) => {
+    // ২. User table update করো
     const updatedUser = await tx.user.update({
       where: { id: user?.id },
+      include: { admin: true, member: true },
       data: {
         ...(payload.name && { name: payload.name }),
         ...(payload.image && { image: payload.image }),
       },
     });
 
+    // ৩. rolePayload — শুধু দেওয়া fields update হবে
     const rolePayload = {
       ...(payload.name && { name: payload.name }),
-      ...(payload.image && { profilePhoto: payload.profilePhoto }),
+      ...(payload.image && { profilePhoto: payload.image }),          // ✅ payload.image দিয়ে profilePhoto
       ...(payload.contactNumber && { contactNumber: payload.contactNumber }),
     };
 
-    if (user?.role === Role.MEMBER) {
-      await tx.member.update({
+    // ৪. ADMIN হলে admin table upsert
+    if (user?.role === Role.ADMIN) {
+      await tx.admin.upsert({
         where: { userId: user?.id },
-        data: rolePayload as IUpdateMember,
+        update: rolePayload,                                           // ✅ শুধু দেওয়া fields update
+        create: {
+          userId: user?.id as string,
+          name: payload.name ?? existingUser.name,                    // ✅ fallback
+          email: existingUser.email,                                   // ✅ required field
+          ...(payload.image && { profilePhoto: payload.image }),
+          ...(payload.contactNumber && { contactNumber: payload.contactNumber }),
+        },
       });
     }
 
-    if (user?.role === Role.ADMIN) {
-      await tx.admin.update({
-        where: { userId: user?.id },
-        data: rolePayload as IUpdateAdminPayload,
+    // ৫. MEMBER হলে member table upsert
+    if (user?.role === Role.MEMBER) {
+      await tx.member.upsert({
+        where: { userId: user?.id as string },
+        update: rolePayload,                                           // ✅ শুধু দেওয়া fields update
+        create: {
+          userId: user?.id as string,
+          name: payload.name ?? existingUser.name,                    // ✅ fallback
+          email: existingUser.email,                                   // ✅ required field
+          ...(payload.image && { profilePhoto: payload.image }),
+          ...(payload.contactNumber && { contactNumber: payload.contactNumber }),
+        },
       });
     }
 

@@ -171,7 +171,7 @@ const resetPasswordReset = catchAsyncHandler(
       httpStatusCode: status.OK,
       success: true,
       message: "password reset Successfully",
-      data: result,
+      data: null,
     });
   }
 );
@@ -285,7 +285,8 @@ const resendOtp = async (req: Request, res: Response) => {
         type,
       },
     });
-    if(response){
+    console.log("resend otp response",response);
+    if(response?.success){
     return res.status(200).json({ success:true,data:[],message: "OTP resent successfully" });
 
     }
@@ -296,20 +297,33 @@ const resendOtp = async (req: Request, res: Response) => {
 };
 
 
- const updateProfile= (catchAsyncHandler(async(req:Request,res:Response,next:NextFunction)=>{
-  const data=await req.body;
-  const payload={...req.body,image:req?.file?.path}
-  const response=await AuthService.updateProfile(payload,req?.user);
-  if(response){
-  return await sendResponse(res,{
-    success:true,
-    message:'Profile Updated Successfully',
-    data:response,
-    httpStatusCode:201
-    });
-  }
- }))
+//  const updateProfile= (catchAsyncHandler(async(req:Request,res:Response,next:NextFunction)=>{
+//   const data=await req.body;
+//   const payload={...req.body,image:req?.file?.path}
+//   const response=await AuthService.updateProfile(payload,req?.user);
+//   if(response){
+//   return await sendResponse(res,{
+//     success:true,
+//     message:'Profile Updated Successfully',
+//     data:response,
+//     httpStatusCode:201
+//     });
+//   }
+//  }))
+const updateProfile = catchAsyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+  const parseData=JSON.parse((req?.body?.data[0]));
 
+  const payload = {...parseData,image:req?.file?.path};
+
+  const response = await AuthService.updateProfile(payload, req?.user);
+
+  return sendResponse(res, {
+    success: true,
+    message: "Profile Updated Successfully",
+    data: response,
+    httpStatusCode: 200,  // update এ 200 ব্যবহার করো, 201 না
+  });
+});
 
 
 
