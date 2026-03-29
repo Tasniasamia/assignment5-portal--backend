@@ -29,5 +29,5 @@ router.post("/resetPassword",AuthController.resetPasswordReset);
 router.get("/login/google",AuthController.googleLogin);
 router.get("/google/success",AuthController.googleSuccess);
 router.patch("/update-profile",checkAuth(Role.ADMIN, Role.MEMBER),multerUpload.single("file"),AuthController.updateProfile)
-
+router.delete("/delete",checkAuth(Role.ADMIN, Role.MEMBER),AuthController.deleteAuthFile)
 export const AuthRoutes = router;

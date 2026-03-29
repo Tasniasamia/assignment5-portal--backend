@@ -311,9 +311,11 @@ const resendOtp = async (req: Request, res: Response) => {
 //   }
 //  }))
 const updateProfile = catchAsyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-  const parseData=JSON.parse((req?.body?.data[0]));
+  const parseData = typeof req.body.data === "string"
+      ? JSON.parse(req.body.data)
+      : req.body.data;
 
-  const payload = {...parseData,image:req?.file?.path};
+  const payload = { ...parseData, image: req?.file?.path };
 
   const response = await AuthService.updateProfile(payload, req?.user);
 
@@ -321,12 +323,24 @@ const updateProfile = catchAsyncHandler(async (req: Request, res: Response, next
     success: true,
     message: "Profile Updated Successfully",
     data: response,
-    httpStatusCode: 200,  // update এ 200 ব্যবহার করো, 201 না
+    httpStatusCode: 200,
   });
 });
 
 
-
+export const deleteAuthFile=catchAsyncHandler(async(req:Request,res:Response)=>{
+  const {filePath}=req.body;
+  const user=await req.user;
+  const result=await AuthService.deleteAuthFile(filePath,user as JwtPayload);
+  if(result){
+    sendResponse(res,{
+      success:true,
+      message:'File deleted successfully',
+      httpStatusCode:200,
+      data:[]
+    })
+  }
+})
 
 
 
@@ -343,5 +357,6 @@ export const AuthController = {
   googleLogin,
   googleSuccess,
   resendOtp,
-  updateProfile
+  updateProfile,
+  deleteAuthFile
 };

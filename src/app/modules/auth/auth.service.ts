@@ -11,6 +11,7 @@ import type { IJwtUserPayload } from "../../interfaces/token.interface";
 import type { IUpdateAdminPayload, IUpdateMember, IUpdateProfilePayload, TChangePasswordPayload } from "./auth.interface";
 import type { Request, Response } from "express";
 import { cookieUtils } from "../../utils/cookie";
+import  { deleteFileFromCloudinary } from "../../../config/cloude.config";
 
 interface IRegisterMemberPayload {
   name: string;
@@ -463,6 +464,35 @@ const googleSuccess = async (user: JwtPayload) => {
   return null;
 };
 
+export const deleteAuthFile=async(filePath:string,user:JwtPayload)=>{
+// const { filePath } = req.body;
+const result=await deleteFileFromCloudinary(filePath);
+let userUpdate,adminUpdate,memberUpdate
+if(result){
+  userUpdate= await prisma.user.update({
+    where:{id:user?.id},
+    data:{image:null}
+  })
+  if(user?.role === "ADMIN"){
+      adminUpdate= await prisma.admin.update({
+    where:{userId:user?.id},
+    data:{profilePhoto:null}
+  })
+  }
+  if(user?.role === "MEMBER"){
+      memberUpdate= await prisma.member.update({
+    where:{userId:user?.id},
+    data:{profilePhoto:null}
+  })
+  }
+}
+
+return {data:{...result,user:userUpdate,admin:adminUpdate,member:memberUpdate}};
+} 
+
+
+
+
 export const AuthService = {
   register,
   loginUser,
@@ -474,5 +504,6 @@ export const AuthService = {
   requestPasswordReset,
   resetPassword,
   googleSuccess,
-  updateProfile
+  updateProfile,
+  deleteAuthFile
 };
