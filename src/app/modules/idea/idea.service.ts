@@ -599,7 +599,10 @@ const getAllIdeasAdmin = async (query: IQueryParams) => {
   //   { status: IdeaStatus.APPROVED },
   //   { isDeleted: false }
   // );
-
+ builder.filterCondition.push(
+    // { authorId: user?.id },
+    { isDeleted: false }
+  );
   builder.callAll();
 
   // ✅ top_voted sort handle
