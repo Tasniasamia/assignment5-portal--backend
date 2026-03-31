@@ -582,6 +582,7 @@ const getAllIdeasAdmin = async (query: IQueryParams) => {
     "problemStatement",
     "author.name",
     "category.name",
+    "type"
   ];
 
   const builder = new QueryBuilder(
