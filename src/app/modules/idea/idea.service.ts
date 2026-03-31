@@ -409,7 +409,8 @@ const getAllIdeas = async (query: IQueryParams, userId?: string) => {
     "description",
     "problemStatement",
     "author.name",
-    "category.name",
+    "category.name"
+    
   ];
 
   const builder = new QueryBuilder(
@@ -463,7 +464,7 @@ const getAllIdeas = async (query: IQueryParams, userId?: string) => {
 
 // ✅ getMyIdeas
 const getMyIdeas = async (user: JwtPayload, query: IQueryParams) => {
-  const stringSearchFields = ["title", "description", "problemStatement"];
+  const stringSearchFields = ["title", "description", "problemStatement","type"];
 
   const builder = new QueryBuilder(
     query,
@@ -476,7 +477,8 @@ const getMyIdeas = async (user: JwtPayload, query: IQueryParams) => {
 
   builder.filterCondition.push(
     { authorId: user?.id },
-    { isDeleted: false }
+    { isDeleted: false },
+    
   );
 
   builder.callAll();

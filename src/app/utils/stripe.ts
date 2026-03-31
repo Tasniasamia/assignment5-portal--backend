@@ -29,7 +29,7 @@ export const createCheckoutSession = async (payload: StripePayload) => {
       ideaId: payload.ideaId,
       paymentId: payload.paymentId,
     },
-    success_url: `${process.env.FRONTEND_URL}/payment/success`,
+    success_url: `${process.env.FRONTEND_URL}/payment/success?idea=${payload.ideaId}`,
     cancel_url: `${process.env.FRONTEND_URL}/payment/cancel`,
   });
 
