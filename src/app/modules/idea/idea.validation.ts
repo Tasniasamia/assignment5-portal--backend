@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { IdeaType } from "../../../generated/prisma/enums";
+import { IdeaStatus, IdeaType } from "../../../generated/prisma/enums";
 
 const createIdeaSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters"),
@@ -23,6 +23,8 @@ const updateIdeaSchema = z.object({
   type: z.nativeEnum(IdeaType).optional(),
   price: z.number().positive().optional(),
   categoryId: z.string().uuid().optional(),
+   isPublished: z.boolean().optional(),
+   status:z.nativeEnum(IdeaStatus),
 });
 
 const rejectIdeaSchema = z.object({

@@ -22,6 +22,8 @@ export type IUpdateIdeaPayload = {
   type?: IdeaType;
   price?: number;
   categoryId?: string;
+  isPublished:boolean,
+  status: IdeaStatus;
 };
 
 export type IRejectIdeaPayload = {

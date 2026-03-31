@@ -199,7 +199,7 @@ const submitIdea = async (ideaId: string, user: JwtPayload) => {
 // };
 const updateIdea = async (
   ideaId: string,
-  payload: IUpdateIdeaPayload,
+  payload: any,
   user: JwtPayload
 ) => {
   const idea = await prisma.idea.findUnique({
@@ -214,35 +214,34 @@ const updateIdea = async (
     throw new AppError(status.FORBIDDEN, "You are not authorized");
   }
 
-  if (
-    idea.status !== IdeaStatus.DRAFT &&
-    idea.status !== IdeaStatus.REJECTED
-  ) {
-    throw new AppError(
-      status.BAD_REQUEST,
-      "Only draft or rejected ideas can be edited"
-    );
-  }
-
-  const updated = await prisma.idea.update({
-    where: { id: ideaId },
-    data: {
-            ...(payload.images !== undefined && { images: payload.images }), 
+  // if (
+  //   idea.status !== IdeaStatus.DRAFT &&
+  //   idea.status !== IdeaStatus.REJECTED
+  // ) {
+  //   throw new AppError(
+  //     status.BAD_REQUEST,
+  //     "Only draft or rejected ideas can be edited"
+  //   );
+  // }
+console.log("payload",payload)
+const updated = await prisma.idea.update({
+  where: { id: ideaId },
+  data: {
     ...(payload.title && { title: payload.title }),
-      ...(payload.title && { title: payload.title }),
-      ...(payload.problemStatement && {
-        problemStatement: payload.problemStatement,
-      }),
-      ...(payload.proposedSolution && {
-        proposedSolution: payload.proposedSolution,
-      }),
-      ...(payload.description && { description: payload.description }),
-      ...(payload.images && { images: payload.images }),
-      ...(payload.categoryId && { categoryId: payload.categoryId }),
-      ...(payload.type && { type: payload.type }),
-      ...(payload.price && { price: payload.price }),
-    },
-  });
+    ...(payload.problemStatement && { problemStatement: payload.problemStatement }),
+    ...(payload.proposedSolution && { proposedSolution: payload.proposedSolution }),
+    ...(payload.description && { description: payload.description }),
+    ...(payload.images !== undefined && { images: payload.images }),
+    ...(payload.categoryId && { categoryId: payload.categoryId }),
+    ...(payload.type && { type: payload.type }),
+    ...(payload.price && { price: payload.price }),
+
+    ...(payload.isPublished !== undefined && { isPublished: payload.isPublished }),
+    ...(payload.isPublished === true && payload.status === "DRAFT"
+      ? { status: IdeaStatus.PENDING }
+      : {status:payload?.status}),
+  },
+});
 
   return updated;
 };
