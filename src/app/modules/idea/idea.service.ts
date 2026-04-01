@@ -464,7 +464,7 @@ const getAllIdeas = async (query: IQueryParams, userId?: string) => {
 
 // ✅ getMyIdeas
 const getMyIdeas = async (user: JwtPayload, query: IQueryParams) => {
-  const stringSearchFields = ["title", "description", "problemStatement","type"];
+  const stringSearchFields = ["title", "description", "problemStatement"];
 
   const builder = new QueryBuilder(
     query,
@@ -585,7 +585,7 @@ const getAllIdeasAdmin = async (query: IQueryParams) => {
     "problemStatement",
     "author.name",
     "category.name",
-    "type"
+    
   ];
 
   const builder = new QueryBuilder(
