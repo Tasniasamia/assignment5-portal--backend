@@ -83,7 +83,7 @@ const getAllUsers = async (query: any) => {
   const skip = (Number(page) - 1) * Number(limit);
 
   const where = {
-    isDeleted: false,
+  
     ...(status && { status }),
     ...(role && { role }),
     ...(search && {
@@ -190,7 +190,7 @@ const deleteUser = async (userId: string) => {
 
   const deleted = await prisma.user.update({
     where: { id: userId },
-    data: { isDeleted: true, deletedAt: new Date() },
+    data: { isDeleted: true,status:UserStatus.DELETED, deletedAt: new Date() },
   });
 
   return deleted;
