@@ -519,6 +519,7 @@ const getIdeaById = async (
       author: {
         select: { id: true, name: true, image: true },
       },
+      
       _count: {
         select: { votes: true, comments: true },
       },
