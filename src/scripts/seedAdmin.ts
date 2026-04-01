@@ -19,7 +19,7 @@ const response=await fetch(`${process.env.BETTER_AUTH_URL}/api/auth/sign-up/emai
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Origin":"http://localhost:6060"
+      "Origin":"https://assignment5-frontend-theta.vercel.app"
    
     },
     body: JSON.stringify(adminInfo),

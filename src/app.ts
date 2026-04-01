@@ -28,6 +28,7 @@ app.use(cookieParser());
 const allowedOrigins = [
   process.env.APP_URL,
   process.env.PROD_APP_URL,
+  "https://assignment5-frontend-theta.vercel.app",
   "http://localhost:3000",
   "http://localhost:6060",
 ].filter(Boolean);
