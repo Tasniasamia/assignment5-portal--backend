@@ -4093,7 +4093,7 @@ app.use(cookieParser());
 var allowedOrigins = [
   process.env.APP_URL,
   process.env.PROD_APP_URL,
-  "https://assignment5-frontend-theta.vercel.app",
+  "https://assignment5-portal-frontend.vercel.app",
   "http://localhost:3000",
   "http://localhost:6060"
 ].filter(Boolean);
