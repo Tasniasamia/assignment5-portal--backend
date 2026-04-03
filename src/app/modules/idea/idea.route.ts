@@ -56,6 +56,25 @@ router.get(
   checkAuth(Role.ADMIN),
   ideaController.getAllIdeasAdmin
 );
+//paid ideas
+router.get(
+  "/payments/admin",
+  checkAuth(Role.ADMIN),
+  ideaController.getPaymentIdeasByAdmin
+);
+router.get(
+  "/sold",
+  checkAuth(Role.MEMBER, Role.ADMIN),
+  ideaController.getMySoldIdeas
+)
+router.get(
+  "/bought",
+  checkAuth(Role.MEMBER, Role.ADMIN),
+  ideaController.getMySoldIdeas
+)
+
+
+
 
 router.patch(
   "/:id/approve",

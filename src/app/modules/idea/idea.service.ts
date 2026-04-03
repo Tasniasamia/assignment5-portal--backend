@@ -551,7 +551,16 @@ const getIdeaById = async (
     if (!userId) {
       throw new AppError(status.UNAUTHORIZED, "Please login to view this idea");
     }
-
+    const isAuthor = await prisma.idea.findFirst({
+      where: { authorId: userId },
+    });
+    if(isAuthor){
+      return {
+        ...idea,
+        userVote: (idea as any).votes?.[0]?.type || null,
+        votes: undefined,
+      };
+    }
     const payment = await prisma.payment.findUnique({
       where: { ideaId_userId: { ideaId, userId } },
     });
@@ -629,6 +638,119 @@ const getAllIdeasAdmin = async (query: IQueryParams) => {
   return await builder.fetch();
 };
 
+
+// ✅ Admin — সব payment
+const getPaymentIdeasByAdmin = async (query: IQueryParams) => {
+  const builder = new QueryBuilder(
+    query,
+    "payment",
+    [],
+    [],
+    [],
+    ["idea", "user"]
+  );
+
+  builder.filterCondition.push();
+
+  builder.callAll();
+
+  builder.include = {
+    idea: {
+      select: {
+        id: true,
+        title: true,
+        type: true,
+        price: true,
+        images: true,
+      },
+    },
+    user: {
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        image: true,
+      },
+    },
+  };
+
+  return await builder.fetch();
+};
+
+// ✅ Member — নিজের কেনা payment
+const getMyBoughtIdeas = async (user: JwtPayload, query: IQueryParams) => {
+
+  const builder = new QueryBuilder(
+    query,
+    "payment",
+    [],
+    [],
+    [],
+    ["idea", "user"]
+  );
+
+  builder.filterCondition.push({ userId: user?.id });
+
+  builder.callAll();
+
+  builder.include = {
+    idea: {
+      select: {
+        id: true,
+        title: true,
+        images: true,
+        type: true,
+        price: true,
+      },
+    },
+  };
+
+  return await builder.fetch();
+};
+
+// ✅ Member — নিজের বেচা payment
+const getMySoldIdeas = async (user: JwtPayload, query: IQueryParams) => {
+  const builder = new QueryBuilder(
+    query,
+    "payment",
+    [],
+    [],
+    [],
+    ["idea", "user"]
+  );
+
+  builder.filterCondition.push({
+    idea: { authorId: user?.id },
+    status: PaymentStatus.SUCCESS,
+  });
+
+  builder.callAll();
+
+  builder.include = {
+    idea: {
+      select: {
+        id: true,
+        title: true,
+        price: true,
+        images: true,
+      },
+    },
+    user: {
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
+    },
+  };
+
+  return await builder.fetch();
+};
+
+
+
+
+
 export const ideaService = {
   createIdea,
   submitIdea,
@@ -640,5 +762,8 @@ export const ideaService = {
   rejectIdea,
   getMyIdeas,
   getAllIdeasAdmin,
-  moveToUnderReview
+  moveToUnderReview,
+  getPaymentIdeasByAdmin,
+  getMySoldIdeas,
+  getMyBoughtIdeas
 };

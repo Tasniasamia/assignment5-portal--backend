@@ -17,6 +17,13 @@ const stripe = new Stripe(envVars.STRIPE_SECRET_KEY!, {
 
 // ✅ Step 1 — Payment Initiate
 const initiatePayment = async (ideaId: string, user: JwtPayload) => {
+  const isAuthor = await prisma.idea.findFirst({
+    where: { id: ideaId, authorId: user?.id },
+  });
+  console.log("isAuthor:", isAuthor);
+  if (isAuthor) {
+    throw new AppError(status.NOT_ACCEPTABLE,"You are author of this idea");
+  }
   const idea = await prisma.idea.findUnique({
     where: { id: ideaId, isDeleted: false, status: IdeaStatus.APPROVED },
   });
@@ -236,3 +243,5 @@ export const paymentService = {
   verifyPayment,
   getMyPayments,
 };
+
+

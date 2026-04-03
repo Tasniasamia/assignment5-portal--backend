@@ -6,6 +6,7 @@ import  { catchAsyncHandler } from "../../shared/catchAsyncHandler";
 import { sendResponse } from "../../shared/sendResponse";
 
 const initiatePayment = catchAsyncHandler(async (req: Request, res: Response) => {
+ 
   const result = await paymentService.initiatePayment(req.body.ideaId, req.user);
   return sendResponse(res, {
     httpStatusCode: status.OK,

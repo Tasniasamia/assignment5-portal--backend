@@ -6,12 +6,6 @@ import { Role } from "../../../generated/prisma/enums";
 
 const router = Router();
 
-// ✅ Stripe webhook — raw body must
-// router.post(
-//   "/webhook",
-//   express.raw({ type: "application/json" }),
-//   paymentController.handleStripeWebhookEvent
-// );
 
 // ✅ Member routes
 router.post(

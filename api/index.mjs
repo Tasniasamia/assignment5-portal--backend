@@ -2873,9 +2873,17 @@ var createCheckoutSession = async (payload) => {
         quantity: 1
       }
     ],
+    // ✅ session level metadata
     metadata: {
       ideaId: payload.ideaId,
       paymentId: payload.paymentId
+    },
+    // ✅ payment_intent level এও metadata — এটাই আসল fix
+    payment_intent_data: {
+      metadata: {
+        ideaId: payload.ideaId,
+        paymentId: payload.paymentId
+      }
     },
     success_url: `${process.env.FRONTEND_URL}/payment/success?idea=${payload.ideaId}`,
     cancel_url: `${process.env.FRONTEND_URL}/payment/cancel`

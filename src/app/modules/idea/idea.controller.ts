@@ -126,6 +126,60 @@ const moveToUnderReview = catchAsyncHandler(async (req: Request, res: Response) 
   });
 });
 
+
+
+
+
+
+
+const getPaymentIdeasByAdmin = catchAsyncHandler(async (req: Request, res: Response) => {
+  const result = await ideaService.getPaymentIdeasByAdmin(req.query as IQueryParams);
+  return sendResponse(res, {
+    httpStatusCode: status.OK,
+    success: true,
+    message: "All payments fetched successfully",
+    data: result,
+  });
+});
+
+
+const getMySoldIdeas = catchAsyncHandler(async (req: Request, res: Response) => {
+  const result = await ideaService.getMySoldIdeas(req.user, req.query as IQueryParams);
+  return sendResponse(res, {
+    httpStatusCode: status.OK,
+    success: true,
+    message: "Sold payments fetched successfully",
+    data: result,
+  });
+});
+
+const getMyBoughtIdeas = catchAsyncHandler(async (req: Request, res: Response) => {
+  const result = await ideaService.getMyBoughtIdeas(req.user, req.query as IQueryParams);
+  return sendResponse(res, {
+    httpStatusCode: status.OK,
+    success: true,
+    message: "My payments fetched successfully",
+    data: result,
+  });
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 export const ideaController = {
   createIdea,
   submitIdea,
@@ -137,5 +191,8 @@ export const ideaController = {
   rejectIdea,
   getMyIdeas,
   getAllIdeasAdmin,
-  moveToUnderReview
+  moveToUnderReview,
+  getPaymentIdeasByAdmin,
+  getMySoldIdeas,
+  getMyBoughtIdeas
 };
