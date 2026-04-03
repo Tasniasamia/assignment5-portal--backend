@@ -70,7 +70,7 @@ router.get(
 router.get(
   "/bought",
   checkAuth(Role.MEMBER, Role.ADMIN),
-  ideaController.getMySoldIdeas
+  ideaController.getMyBoughtIdeas
 )
 
 

@@ -679,7 +679,8 @@ const getPaymentIdeasByAdmin = async (query: IQueryParams) => {
 
 // ✅ Member — নিজের কেনা payment
 const getMyBoughtIdeas = async (user: JwtPayload, query: IQueryParams) => {
-
+  console.log("user in service:", user);
+  console.log("coming here");
   const builder = new QueryBuilder(
     query,
     "payment",
