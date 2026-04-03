@@ -2491,6 +2491,16 @@ var getIdeaById = async (ideaId, userId, role) => {
     if (!userId) {
       throw new AppError(status10.UNAUTHORIZED, "Please login to view this idea");
     }
+    const isAuthor = await prisma.idea.findFirst({
+      where: { authorId: userId }
+    });
+    if (isAuthor) {
+      return {
+        ...idea,
+        userVote: idea.votes?.[0]?.type || null,
+        votes: void 0
+      };
+    }
     const payment = await prisma.payment.findUnique({
       where: { ideaId_userId: { ideaId, userId } }
     });
@@ -2544,6 +2554,97 @@ var getAllIdeasAdmin = async (query) => {
   };
   return await builder.fetch();
 };
+var getPaymentIdeasByAdmin = async (query) => {
+  const builder = new QueryBuilder(
+    query,
+    "payment",
+    [],
+    [],
+    [],
+    ["idea", "user"]
+  );
+  builder.filterCondition.push();
+  builder.callAll();
+  builder.include = {
+    idea: {
+      select: {
+        id: true,
+        title: true,
+        type: true,
+        price: true,
+        images: true
+      }
+    },
+    user: {
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        image: true
+      }
+    }
+  };
+  return await builder.fetch();
+};
+var getMyBoughtIdeas = async (user, query) => {
+  console.log("user in service:", user);
+  console.log("coming here");
+  const builder = new QueryBuilder(
+    query,
+    "payment",
+    [],
+    [],
+    [],
+    ["idea", "user"]
+  );
+  builder.filterCondition.push({ userId: user?.id });
+  builder.callAll();
+  builder.include = {
+    idea: {
+      select: {
+        id: true,
+        title: true,
+        images: true,
+        type: true,
+        price: true
+      }
+    }
+  };
+  return await builder.fetch();
+};
+var getMySoldIdeas = async (user, query) => {
+  const builder = new QueryBuilder(
+    query,
+    "payment",
+    [],
+    [],
+    [],
+    ["idea", "user"]
+  );
+  builder.filterCondition.push({
+    idea: { authorId: user?.id },
+    status: PaymentStatus.SUCCESS
+  });
+  builder.callAll();
+  builder.include = {
+    idea: {
+      select: {
+        id: true,
+        title: true,
+        price: true,
+        images: true
+      }
+    },
+    user: {
+      select: {
+        id: true,
+        name: true,
+        email: true
+      }
+    }
+  };
+  return await builder.fetch();
+};
 var ideaService = {
   createIdea,
   submitIdea,
@@ -2555,7 +2656,10 @@ var ideaService = {
   rejectIdea,
   getMyIdeas,
   getAllIdeasAdmin,
-  moveToUnderReview
+  moveToUnderReview,
+  getPaymentIdeasByAdmin,
+  getMySoldIdeas,
+  getMyBoughtIdeas
 };
 
 // src/app/modules/idea/idea.controller.ts
@@ -2666,6 +2770,33 @@ var moveToUnderReview2 = catchAsyncHandler(async (req, res) => {
     data: result
   });
 });
+var getPaymentIdeasByAdmin2 = catchAsyncHandler(async (req, res) => {
+  const result = await ideaService.getPaymentIdeasByAdmin(req.query);
+  return sendResponse(res, {
+    httpStatusCode: status11.OK,
+    success: true,
+    message: "All payments fetched successfully",
+    data: result
+  });
+});
+var getMySoldIdeas2 = catchAsyncHandler(async (req, res) => {
+  const result = await ideaService.getMySoldIdeas(req.user, req.query);
+  return sendResponse(res, {
+    httpStatusCode: status11.OK,
+    success: true,
+    message: "Sold payments fetched successfully",
+    data: result
+  });
+});
+var getMyBoughtIdeas2 = catchAsyncHandler(async (req, res) => {
+  const result = await ideaService.getMyBoughtIdeas(req.user, req.query);
+  return sendResponse(res, {
+    httpStatusCode: status11.OK,
+    success: true,
+    message: "My payments fetched successfully",
+    data: result
+  });
+});
 var ideaController = {
   createIdea: createIdea2,
   submitIdea: submitIdea2,
@@ -2677,7 +2808,10 @@ var ideaController = {
   rejectIdea: rejectIdea2,
   getMyIdeas: getMyIdeas2,
   getAllIdeasAdmin: getAllIdeasAdmin2,
-  moveToUnderReview: moveToUnderReview2
+  moveToUnderReview: moveToUnderReview2,
+  getPaymentIdeasByAdmin: getPaymentIdeasByAdmin2,
+  getMySoldIdeas: getMySoldIdeas2,
+  getMyBoughtIdeas: getMyBoughtIdeas2
 };
 
 // src/app/modules/idea/idea.route.ts
@@ -2718,6 +2852,21 @@ router4.get(
   "/admin",
   checkAuth(Role.ADMIN),
   ideaController.getAllIdeasAdmin
+);
+router4.get(
+  "/payments/admin",
+  checkAuth(Role.ADMIN),
+  ideaController.getPaymentIdeasByAdmin
+);
+router4.get(
+  "/sold",
+  checkAuth(Role.MEMBER, Role.ADMIN),
+  ideaController.getMySoldIdeas
+);
+router4.get(
+  "/bought",
+  checkAuth(Role.MEMBER, Role.ADMIN),
+  ideaController.getMyBoughtIdeas
 );
 router4.patch(
   "/:id/approve",
@@ -2897,6 +3046,13 @@ var stripe2 = new Stripe2(envVars.STRIPE_SECRET_KEY, {
   apiVersion: "2025-08-27"
 });
 var initiatePayment = async (ideaId, user) => {
+  const isAuthor = await prisma.idea.findFirst({
+    where: { id: ideaId, authorId: user?.id }
+  });
+  console.log("isAuthor:", isAuthor);
+  if (isAuthor) {
+    throw new AppError(status12.NOT_ACCEPTABLE, "You are author of this idea");
+  }
   const idea = await prisma.idea.findUnique({
     where: { id: ideaId, isDeleted: false, status: IdeaStatus.APPROVED }
   });
