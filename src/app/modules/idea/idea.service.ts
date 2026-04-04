@@ -44,6 +44,7 @@ console.log("payload",payload);
       status:payload?.isPublished? IdeaStatus.PENDING : IdeaStatus.DRAFT,
       authorId: user?.id,
       categoryId: payload.categoryId,
+      isPublished:payload?.isPublished
     },
     include: {
       category: true,
@@ -57,7 +58,7 @@ console.log("payload",payload);
       },
     },
   });
-
+console.log("idea ",idea)
   return idea;
 };
 
