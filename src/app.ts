@@ -8,9 +8,11 @@ import { toNodeHandler } from "better-auth/node";
 import { auth } from "./app/lib/auth";
 import cron from "node-cron";
 import { paymentController } from "./app/modules/payment/payment.controller";
+import { requestLogger } from "./app/middleware/requestLogger";
 // import { PaymentController } from "./app/modules/payment/payment.controller";
 
 const app: Application = express();
+app.use(requestLogger);
 app.post(
   "/api/v1/payments/webhook",
   express.raw({ type: "application/json" }),
